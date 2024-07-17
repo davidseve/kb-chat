@@ -1,9 +1,11 @@
 kind: Route
 apiVersion: route.openshift.io/v1
-metadata:
+metadata: 
   name: gradio-rag-milvus-vllm-openai
   labels:
     app: gradio-rag-milvus-vllm-openai
+spec:
+  host: geneva-gradio.apps.ocp-ia.jccm.es
   to:
     kind: Service
     name: gradio-rag-milvus-vllm-openai
