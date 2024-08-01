@@ -1,8 +1,6 @@
-from ast import If
 import json
 import os
-import random
-import time
+
 from collections.abc import Generator
 from queue import Empty, Queue
 from threading import Thread
@@ -12,15 +10,12 @@ from kubernetes import client, config
 
 import gradio as gr
 from dotenv import load_dotenv
-from langchain_core.documents import Document
-from langchain_core.embeddings import Embeddings
-from langchain_core.retrievers import BaseRetriever
+
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.chains import RetrievalQA
 from langchain.embeddings.huggingface import HuggingFaceEmbeddings
 from langchain_community.llms import VLLMOpenAI
 from langchain.prompts import PromptTemplate
-from langchain_community.vectorstores import Milvus
 from milvus_retriever_with_score_threshold import MilvusRetrieverWithScoreThreshold
 
 load_dotenv()
@@ -263,21 +258,21 @@ with gr.Blocks(title="Knowledge base backed Chatbot", css=css) as demo:
             gr.Markdown(f"# {APP_TITLE}")
     with gr.Row():
         with gr.Column(scale=1):
-            gr.Markdown(f"This chatbot lets you chat with a Large Language Model (LLM) that can be backed by different knowledge bases (or none).")
+            gr.Markdown(f"Este chatbot te permite chatear con un modelo LLM que puede estar respaldado por diferentes bases de conocimiento (o ninguna).")
             collection = gr.Dropdown(
                 choices=collection_options,
-                label="Knowledge Base:",
+                label="Base de conocimiento:",
                 value=DEFAULT_COLLECTION,
                 interactive=True,
-                info="Choose the knowledge base the LLM will have access to:"
+                info="Elija la base de conocimiento:"
             )
             collection.input(select_collection, inputs=[collection,selected_collection_var], outputs=[selected_collection_var])
             dossier = gr.Dropdown(
                 choices=dossier_options,
-                label="Select Dossier:",
+                label="Seleccione Expediente:",
                 value=dossier_options[0],
                 interactive=True,
-                info="Choose a dossier:"
+                info="Elija un expediente:"
             )
             dossier.input(select_dossier, inputs=[dossier,selected_dossier_var], outputs=[selected_dossier_var])
         with gr.Column(scale=4):
