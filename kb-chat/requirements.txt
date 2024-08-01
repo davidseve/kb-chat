@@ -1,0 +1,10 @@
+torch
+einops
+gradio
+pymilvus
+sentence-transformers
+text-generation
+python-dotenv
+langchain_community
+openai
+kubernetes
