@@ -89,6 +89,9 @@ PROMPT_FILE = os.getenv('PROMPT_FILE', 'default_prompt.txt')
 MAX_RETRIEVED_DOCS = int(os.getenv('MAX_RETRIEVED_DOCS', 4))
 SCORE_THRESHOLD = float(os.getenv('SCORE_THRESHOLD', 0.99))
 
+USER_APP = os.getenv('USER_APP', 'user')
+PWD_APP = os.getenv('PWD_APP', 'pwd')
+
 # Load collections from JSON file
 with open(MILVUS_COLLECTIONS_FILE, 'r') as file:
     collections_data = json.load(file)
@@ -300,5 +303,7 @@ if __name__ == "__main__":
         server_name='0.0.0.0',
         share=False,
         favicon_path='./assets/robot-head.ico',
-        allowed_paths=["./assets/"]
+        allowed_paths=["./assets/"],
+        auth= (USER_APP, PWD_APP),
+        auth_message= "Introduzca su usuario y contraseña"
         )
