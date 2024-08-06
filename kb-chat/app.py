@@ -255,10 +255,15 @@ with gr.Blocks(title="Knowledge base backed Chatbot", css=css) as demo:
     selected_collection_var = gr.State(DEFAULT_COLLECTION)
     selected_dossier_var = gr.State(DEFAULT_DOSSIER)
     with gr.Row():
-        if SHOW_TITLE_IMAGE == 'True':
-            gr.Markdown(f"# ![image](/file=./assets/reading-robot.png)   {APP_TITLE}")
-        else:
+        with gr.Column(scale=1):
+            if SHOW_TITLE_IMAGE == 'True':
+                gr.set_static_paths(paths=["assets/"])
+                image_path = "assets/logoJCCM.png"
+                gr.HTML(f"""<img src="/file={image_path}" width="150" height="150">""")
+        with gr.Column(scale=1):
             gr.Markdown(f"# {APP_TITLE}")
+        with gr.Column(scale=4):
+            gr.HTML(f"""</br>""")
     with gr.Row():
         with gr.Column(scale=1):
             gr.Markdown(f"Este chatbot te permite chatear con un modelo LLM que puede estar respaldado por diferentes bases de conocimiento (o ninguna).")
