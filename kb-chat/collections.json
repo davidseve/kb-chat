@@ -1,5 +1,4 @@
 [
-    {"name":"none","display_name":"None"},
-    {"name":"documents","display_name":"Documents"},
-    {"name":"chunks","display_name":"Chunks"}
-  ]
+  {"name":"none","display_name":"None"},
+  {"name":"chunks","display_name":"Chunks"}
+]

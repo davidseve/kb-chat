@@ -85,7 +85,8 @@ MILVUS_COLLECTIONS_FILE = os.getenv('MILVUS_COLLECTIONS_FILE')
 
 DEFAULT_COLLECTION = os.getenv('DEFAULT_COLLECTION')
 DEFAULT_DOSSIER = 'None'
-PROMPT_FILE = os.getenv('PROMPT_FILE', 'default_prompt.txt')
+LANGUAGE = os.getenv('LANGUAGE', 'en')
+PROMPT_FILE = os.getenv('PROMPT_FILE', f'default_prompt.{LANGUAGE}')
 MAX_RETRIEVED_DOCS = int(os.getenv('MAX_RETRIEVED_DOCS', 4))
 SCORE_THRESHOLD = float(os.getenv('SCORE_THRESHOLD', 0.99))
 
@@ -154,6 +155,7 @@ def stream(input_text, selected_collection, selected_dossier) -> Generator:
         collection_description="",
         collection_properties=None,
         dossier_name=selected_dossier,
+        language=LANGUAGE,
         connection_args={"host": MILVUS_HOST, "port": MILVUS_PORT, "user": MILVUS_USERNAME, "password": MILVUS_PASSWORD},
         consistency_level="Session",
         search_params=None,
@@ -258,8 +260,8 @@ with gr.Blocks(title="Knowledge base backed Chatbot", css=css) as demo:
         with gr.Column(scale=1):
             if SHOW_TITLE_IMAGE == 'True':
                 gr.set_static_paths(paths=["assets/"])
-                image_path = "assets/logoJCCM.png"
-                gr.HTML(f"""<img src="/file={image_path}" width="150" height="150">""")
+                image_path = "assets/reading-robot.png"
+                gr.HTML(f"""<img src="/file={image_path}" width="75" height="75">""")
         with gr.Column(scale=1):
             gr.Markdown(f"# {APP_TITLE}")
         with gr.Column(scale=4):

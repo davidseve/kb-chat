@@ -11,6 +11,7 @@ from langchain_community.vectorstores import Milvus
 from langchain_core.retrievers import BaseRetriever
 
 from langchain_community.vectorstores.milvus import Milvus
+from langchain_text_splitters import Language
 
 class MilvusRetrieverWithScoreThreshold(BaseRetriever):
     """`Milvus API` retriever."""
@@ -20,6 +21,7 @@ class MilvusRetrieverWithScoreThreshold(BaseRetriever):
     collection_description: str = ""
     collection_properties: Optional[Dict[str, Any]] = None
     dossier_name: str = None
+    language: str = None
     connection_args: Optional[Dict[str, Any]] = None
     consistency_level: str = "Session"
     search_params: Optional[dict] = None
@@ -70,9 +72,9 @@ class MilvusRetrieverWithScoreThreshold(BaseRetriever):
         **kwargs: Any,
     ) -> List[Document]:
         expr = None
-        if self.dossier_name:
-            print(f"Using dossier: {self.dossier_name}")
-            expr = f"dossier == '{self.dossier_name}'" 
+        if self.dossier_name is not None and self.language is not None:
+            print(f"Using dossier: {self.dossier_name} and language: {self.language}")
+            expr = f"dossier == '{self.dossier_name}' and language == '{self.language}'" 
             print(f"expr={expr}")
         docs_and_scores = self.store.similarity_search_with_score(query, k=self.k, return_metadata=True, expr=expr)
         print(f"docs_and_scores (1)={docs_and_scores}")
