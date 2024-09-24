@@ -80,8 +80,7 @@ class MilvusRetrieverWithScoreThreshold(BaseRetriever):
         print(f"docs_and_scores (1)={docs_and_scores}")
 
         # docs_and_scores = [(doc, score) for doc, score in docs_and_scores if score < self.score_threshold]
-
-        print(f"docs_and_scores (2)={docs_and_scores}")
+        # print(f"docs_and_scores (2)={docs_and_scores}")
 
         for doc, score in docs_and_scores:
             doc.metadata = {**doc.metadata, **{"score": score}}
