@@ -1,0 +1,10 @@
+{
+    "app_title": "Chat with your Knowledge Base!",
+    "chatbot_description": "This chatbot allows you to chat with an LLM model that can be backed by different knowledge bases (or none).",
+    "knowledge_base_label": "Knowledge Base:",
+    "knowledge_base_info": "Choose the knowledge base:",
+    "dossier_label": "Select Dossier:",
+    "dossier_info": "Choose a dossier:",
+    "auth_message": "Please enter your username and password",
+    "sources_label": "Sources:"
+}

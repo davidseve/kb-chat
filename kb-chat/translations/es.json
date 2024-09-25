@@ -1,0 +1,10 @@
+{
+    "app_title": "¡Chatea con tu Base de Conocimiento!",
+    "chatbot_description": "Este chatbot te permite chatear con un modelo LLM que puede estar respaldado por diferentes bases de conocimiento (o ninguna).",
+    "knowledge_base_label": "Base de conocimiento:",
+    "knowledge_base_info": "Elija la base de conocimiento:",
+    "dossier_label": "Seleccione Expediente:",
+    "dossier_info": "Elija un expediente:",
+    "auth_message": "Introduzca su usuario y contraseña",
+    "sources_label": "Fuentes:"
+}
