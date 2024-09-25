@@ -18,6 +18,8 @@ from langchain_community.llms import VLLMOpenAI
 from langchain.prompts import PromptTemplate
 from milvus_retriever_with_score_threshold import MilvusRetrieverWithScoreThreshold
 
+from pymilvus import connections, Collection
+
 load_dotenv()
 
 # Load in-cluster Kubernetes configuration but if it fails, load local configuration
@@ -93,6 +95,20 @@ SCORE_THRESHOLD = float(os.getenv('SCORE_THRESHOLD', 0.99))
 USER_APP = os.getenv('USER_APP', 'user')
 PWD_APP = os.getenv('PWD_APP', 'pwd')
 
+# Load translations based on LANGUAGE
+def load_translations(language_code: str) -> Dict[str, str]:
+    translations_path = os.path.join(os.path.dirname(__file__), 'translations', f'{language_code}.json')
+    try:
+        with open(translations_path, 'r', encoding='utf-8') as f:
+            translations = json.load(f)
+        return translations
+    except FileNotFoundError:
+        print(f"Translation file for language '{language_code}' not found. Falling back to English.")
+        with open(os.path.join(os.path.dirname(__file__), 'translations', 'en.json'), 'r', encoding='utf-8') as f:
+            return json.load(f)
+
+translations = load_translations(LANGUAGE)
+
 # Load collections from JSON file
 with open(MILVUS_COLLECTIONS_FILE, 'r') as file:
     collections_data = json.load(file)
@@ -100,6 +116,42 @@ with open(MILVUS_COLLECTIONS_FILE, 'r') as file:
 # Load Prompt template from txt file
 with open(PROMPT_FILE, 'r') as file:
     prompt_template = file.read()
+
+# Print parameters related to language and prompt
+print("LANGUAGE: ", LANGUAGE)
+print("PROMPT_FILE: ", PROMPT_FILE)
+print("PROMPT_TEMPLATE: ", prompt_template)
+
+# Function to query Milvus for unique dossier values
+def get_dossier_options_from_milvus():
+    try:
+        # Connect to Milvus
+        connections.connect(
+            alias="default",
+            host=MILVUS_HOST,
+            port=MILVUS_PORT,
+            user=MILVUS_USERNAME,
+            password=MILVUS_PASSWORD
+        )
+        
+        # Access the collection (replace "chunks" with the actual collection name)
+        collection = Collection("chunks")
+        
+        # Load all entries in the collection and retrieve the "dossier" field
+        # Adjust the limit as necessary (e.g., if the collection is large, use pagination)
+        results = collection.query(expr="dossier != ''", output_fields=["dossier"])
+        
+        # Extract the "dossier" values
+        dossiers = [result['dossier'] for result in results]
+        
+        # Eliminate duplicates using `set` and convert back to a list
+        unique_dossiers = list(set(dossiers))
+        
+        return unique_dossiers
+    
+    except Exception as e:
+        print(f"Error querying Milvus: {e}")
+        return [DEFAULT_DOSSIER]  # Return default if error
 
 ############################
 # Streaming call functions #
@@ -171,7 +223,7 @@ def stream(input_text, selected_collection, selected_dossier) -> Generator:
         retriever=retriever,
         chain_type_kwargs={"prompt": qa_chain_prompt},
         return_source_documents=True
-        )
+    )
 
     # Create a Queue
     job_done = object()
@@ -181,9 +233,9 @@ def stream(input_text, selected_collection, selected_dossier) -> Generator:
         resp = qa_chain.invoke({"query": input_text})
         sources = remove_source_duplicates(resp['source_documents'])
         if len(sources) != 0:
-            q.put("\n*Sources:* \n")
+            q.put(f"\n{translations['sources_label']} \n")
             for source in sources:
-                q.put("* " + str(source) + "\n")
+                q.put(f"* {str(source)}\n")
         q.put(job_done)
 
     # Create a thread and start the function
@@ -232,17 +284,23 @@ def update_dossier(dossier_number):
 ####################
 
 collection_options = [(collection['display_name'], collection['name']) for collection in collections_data]
-dossier_options = ['None', '3166', '3210']
+
+# dossier_options = ['None', '0001', '0002', '0003']
+# Get dossiers from Milvus
+dossier_options = get_dossier_options_from_milvus()
+# Add "None" option to the beginning
+dossier_options.insert(0, DEFAULT_DOSSIER)
+print("DOSSIER_OPTIONS: ", dossier_options)
 
 def select_collection(collection_name, selected_collection):
     return {
         selected_collection_var: collection_name
-        }
+    }
 
 def select_dossier(dossier_name, selected_dossier):
     return {
         selected_dossier_var: dossier_name
-        }
+    }
 
 def ask_llm(message, history, selected_collection, selected_dossier):
     for next_token, content in stream(message, selected_collection, selected_dossier):
@@ -253,7 +311,7 @@ footer {visibility: hidden}
 .title_image img {width: 80px !important}
 """
 
-with gr.Blocks(title="Knowledge base backed Chatbot", css=css) as demo:
+with gr.Blocks(title=translations['app_title'], css=css) as demo:
     selected_collection_var = gr.State(DEFAULT_COLLECTION)
     selected_dossier_var = gr.State(DEFAULT_DOSSIER)
     with gr.Row():
@@ -263,35 +321,35 @@ with gr.Blocks(title="Knowledge base backed Chatbot", css=css) as demo:
                 image_path = "assets/reading-robot.png"
                 gr.HTML(f"""<img src="/file={image_path}" width="75" height="75">""")
         with gr.Column(scale=1):
-            gr.Markdown(f"# {APP_TITLE}")
+            gr.Markdown(f"# {translations['app_title']}")
         with gr.Column(scale=4):
             gr.HTML(f"""</br>""")
     with gr.Row():
         with gr.Column(scale=1):
-            gr.Markdown(f"Este chatbot te permite chatear con un modelo LLM que puede estar respaldado por diferentes bases de conocimiento (o ninguna).")
+            gr.Markdown(translations['chatbot_description'])
             collection = gr.Dropdown(
                 choices=collection_options,
-                label="Base de conocimiento:",
+                label=translations['knowledge_base_label'],
                 value=DEFAULT_COLLECTION,
                 interactive=True,
-                info="Elija la base de conocimiento:"
+                info=translations['knowledge_base_info']
             )
-            collection.input(select_collection, inputs=[collection,selected_collection_var], outputs=[selected_collection_var])
+            collection.input(select_collection, inputs=[collection, selected_collection_var], outputs=[selected_collection_var])
             dossier = gr.Dropdown(
                 choices=dossier_options,
-                label="Seleccione Expediente:",
+                label=translations['dossier_label'],
                 value=dossier_options[0],
                 interactive=True,
-                info="Elija un expediente:"
+                info=translations['dossier_info']
             )
-            dossier.input(select_dossier, inputs=[dossier,selected_dossier_var], outputs=[selected_dossier_var])
+            dossier.input(select_dossier, inputs=[dossier, selected_dossier_var], outputs=[selected_dossier_var])
         with gr.Column(scale=4):
             chatbot = gr.Chatbot(
                 show_label=False,
-                avatar_images=(None,'assets/robot-head.svg'),
+                avatar_images=(None, 'assets/robot-head.svg'),
                 render=False,
                 show_copy_button=True
-                )
+            )
             gr.ChatInterface(
                 ask_llm,
                 additional_inputs=[selected_collection_var, selected_dossier_var],
@@ -301,16 +359,16 @@ with gr.Blocks(title="Knowledge base backed Chatbot", css=css) as demo:
                 undo_btn=None,
                 stop_btn=None,
                 description=None
-                )
+            )
 
 if __name__ == "__main__":
     demo.queue(
         default_concurrency_limit=10
-        ).launch(
+    ).launch(
         server_name='0.0.0.0',
         share=False,
         favicon_path='./assets/robot-head.ico',
         allowed_paths=["./assets/"],
-        auth= (USER_APP, PWD_APP),
-        auth_message= "Introduzca su usuario y contraseña"
-        )
+        auth=(USER_APP, PWD_APP),
+        auth_message=translations['auth_message']
+    )
