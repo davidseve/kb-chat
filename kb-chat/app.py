@@ -18,7 +18,7 @@ from langchain_community.llms import VLLMOpenAI
 from langchain.prompts import PromptTemplate
 from milvus_retriever_with_score_threshold import MilvusRetrieverWithScoreThreshold
 
-from pymilvus import connections, Collection
+from pymilvus import connections, Collection, list_collections
 
 load_dotenv()
 
@@ -122,6 +122,35 @@ print("LANGUAGE: ", LANGUAGE)
 print("PROMPT_FILE: ", PROMPT_FILE)
 print("PROMPT_TEMPLATE: ", prompt_template)
 
+# Function to query Milvus for collections
+def get_collections_from_milvus() -> List:
+    try:
+        # Connect to Milvus
+        connections.connect(
+            alias="default",
+            host=MILVUS_HOST,
+            port=MILVUS_PORT,
+            user=MILVUS_USERNAME,
+            password=MILVUS_PASSWORD
+        )
+        
+        # Retrieve the list of collections from Milvus
+        collections = list_collections()
+        
+        # If no collections found, return a default message
+        if not collections:
+            print("No collections found in Milvus.")
+            return ["none"]
+        else:
+            # Add None option to the beginning
+            collections.insert(0, "none")
+        
+        return collections
+    
+    except Exception as e:
+        print(f"Error querying Milvus for collections: {e}")
+        return ["None"]  # Return a default error message 
+    
 # Function to query Milvus for unique dossier values
 def get_dossier_options_from_milvus():
     try:
@@ -146,6 +175,13 @@ def get_dossier_options_from_milvus():
         
         # Eliminate duplicates using `set` and convert back to a list
         unique_dossiers = list(set(dossiers))
+
+        # If no dossiers found, return DEFAULT_DOSSIER
+        if not unique_dossiers:
+            return [DEFAULT_DOSSIER]
+        else:
+            # Add None option to the beginning
+            unique_dossiers.insert(0, "None")
         
         return unique_dossiers
     
@@ -283,13 +319,14 @@ def update_dossier(dossier_number):
 # Gradio interface #
 ####################
 
-collection_options = [(collection['display_name'], collection['name']) for collection in collections_data]
+# Fetch collections from Milvus
+collection_options = [( collection.capitalize(), collection ) for collection in get_collections_from_milvus()]
+# collection_options = [(collection['display_name'], collection['name']) for collection in collections_data]
+print("COLLECTION_OPTIONS: ", collection_options)
 
 # dossier_options = ['None', '0001', '0002', '0003']
 # Get dossiers from Milvus
 dossier_options = get_dossier_options_from_milvus()
-# Add "None" option to the beginning
-dossier_options.insert(0, DEFAULT_DOSSIER)
 print("DOSSIER_OPTIONS: ", dossier_options)
 
 def select_collection(collection_name, selected_collection):
