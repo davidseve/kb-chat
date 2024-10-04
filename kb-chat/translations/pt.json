@@ -1,0 +1,10 @@
+{
+    "app_title": "Converse com sua Base de Conhecimento!",
+    "chatbot_description": "Este chatbot permite que você converse com um modelo LLM que pode ser apoiado por diferentes bases de conhecimento (ou nenhuma).",
+    "knowledge_base_label": "Base de conhecimento:",
+    "knowledge_base_info": "Escolha a base de conhecimento:",
+    "dossier_label": "Selecione Dossiê:",
+    "dossier_info": "Escolha um dossiê:",
+    "auth_message": "Digite seu usuário e senha",
+    "sources_label": "Fontes:"
+}
