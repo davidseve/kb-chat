@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.chains import RetrievalQA
-from langchain.embeddings.huggingface import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.llms.vllm import VLLMOpenAI
 from langchain.prompts import PromptTemplate
 from milvus_retriever_with_score_threshold import MilvusRetrieverWithScoreThreshold
